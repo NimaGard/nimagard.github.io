@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>What's Missing in Robot Learning: World Models - Nima Gard</title>
-    <meta name="description" content="Examining what is missing from today's dominant approaches to robot learning, and why world models are the next meaningful step.">
+    <meta name="description"
+        content="Examining what is missing from today's dominant approaches to robot learning, and why world models are the next meaningful step.">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/blog.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <nav class="nav">
         <div class="nav-inner">
@@ -23,8 +28,16 @@
                 <a href="/blog/">Blog</a>
             </div>
             <button class="theme-toggle" aria-label="Toggle theme">
-                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <path
+                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
             </button>
         </div>
     </nav>
@@ -44,28 +57,41 @@
                 <span class="tag">World Models</span>
                 <span class="tag">VLA</span>
             </div>
+            <img src="/assets/blog/world-model/world-models-cover.jpg" alt="World models for robot learning"
+                class="blog-cover-img">
         </header>
 
         <div class="blog-post-body anim-fade-up" style="--delay: 0.15s">
-
+            <p>
+                See the original post <a href="https://x.com/NimaGard/status/2013323379202240953"
+                    target="_blank">here</a>.
+            </p>
             <p>
                 In this series, I want to examine what is missing from today's dominant approaches to robot learning.
             </p>
             <p>
-                I'll leave the long-term debate about "how to solve AGI for robotics" to others. My focus is more pragmatic: <strong>what is the next meaningful step toward scalable, reliable physical AI systems that actually work in the real world.</strong>
+                I'll leave the long-term debate about "how to solve AGI for robotics" to others. My focus is more
+                pragmatic: <strong>what is the next meaningful step toward scalable, reliable physical AI systems that
+                    actually work in the real world.</strong>
             </p>
             <p>
-                Robot learning is, by nature, an applied subfield of AI. Much of its progress comes from borrowing components developed elsewhere and assembling them into systems. Vision-Language-Action (VLA) models are a good example. They are currently the standard solution for long-horizon robotic tasks.
+                Robot learning is, by nature, an applied subfield of AI. Much of its progress comes from borrowing
+                components developed elsewhere and assembling them into systems. Vision-Language-Action (VLA) models are
+                a good example. They are currently the standard solution for long-horizon robotic tasks.
             </p>
             <p>
                 A typical VLA system combines:
             </p>
             <ul>
-                <li>A <strong>vision&ndash;language model</strong>, usually pretrained for captioning, question answering, or instruction following, and</li>
-                <li>An <strong>action model</strong>, often an expert head such as a diffusion policy trained with a flow-matching objective <a href="#ref-1">[1]</a>.</li>
+                <li>A <strong>vision&ndash;language model</strong>, usually pretrained for captioning, question
+                    answering, or instruction following, and</li>
+                <li>An <strong>action model</strong>, often an expert head such as a diffusion policy trained with a
+                    flow-matching objective <a href="#ref-1">[1]</a>.</li>
             </ul>
             <p>
-                VLAs are arguably the best solutions we have today, not because they are fundamentally correct, but because they check several boxes required for real-world deployment. That said, they are still missing critical components.
+                VLAs are arguably the best solutions we have today, not because they are fundamentally correct, but
+                because they check several boxes required for real-world deployment. That said, they are still missing
+                critical components.
             </p>
 
             <h2>A Learning Analogy from the Physical World</h2>
@@ -74,25 +100,41 @@
                 Let me ground this discussion with a personal experience.
             </p>
             <p>
-                Several years ago, I decided to learn how to snowboard. I grew up in a hot climate where winter sports simply didn't exist, so this was entirely new to me. Before ever stepping on a board, I watched hours of snowboarding videos. I wanted to see whether it was possible to learn a physically demanding and coordination-heavy skill purely from observation. I assumed that being generally athletic would help, and that all I needed was to understand the physics.
+                Several years ago, I decided to learn how to snowboard. I grew up in a hot climate where winter sports
+                simply didn't exist, so this was entirely new to me. Before ever stepping on a board, I watched hours of
+                snowboarding videos. I wanted to see whether it was possible to learn a physically demanding and
+                coordination-heavy skill purely from observation. I assumed that being generally athletic would help,
+                and that all I needed was to understand the physics.
             </p>
             <p>
-                Armed with YouTube videos, new gear, and excitement, I went to Perfect North Slopes right over the Ohio border in Indiana. I got on the board and immediately fell. Repeatedly. I spent far more time on the ground than on the board.
+                Armed with YouTube videos, new gear, and excitement, I went to Perfect North Slopes right over the Ohio
+                border in Indiana. I got on the board and immediately fell. Repeatedly. I spent far more time on the
+                ground than on the board.
             </p>
             <p>
-                This wasn't surprising in hindsight. I was trying to activate muscle groups in unfamiliar ways. The videos showed <em>what</em> to do and what success looked like, but not <em>how it felt</em> to do it, nor how to correct mistakes in real time. They couldn't&mdash;because that information depends on embodiment.
+                This wasn't surprising in hindsight. I was trying to activate muscle groups in unfamiliar ways. The
+                videos showed <em>what</em> to do and what success looked like, but not <em>how it felt</em> to do it,
+                nor how to correct mistakes in real time. They couldn't&mdash;because that information depends on
+                embodiment.
             </p>
             <p>
-                On my next visit, I signed up for beginner lessons. Immediately, things changed. I learned how to balance, received explicit feedback on what I was doing wrong, and developed a basic sense of control. I still fell often, but I was now spending meaningful time upright.
+                On my next visit, I signed up for beginner lessons. Immediately, things changed. I learned how to
+                balance, received explicit feedback on what I was doing wrong, and developed a basic sense of control. I
+                still fell often, but I was now spending meaningful time upright.
             </p>
             <p>
-                When I went home, I rewatched many of the same videos. This time, they made much more sense. I noticed details I had previously ignored and could mentally simulate movements I now had some physical reference for. Concepts like shifting my center of gravity or steering with my back foot were no longer abstract.
+                When I went home, I rewatched many of the same videos. This time, they made much more sense. I noticed
+                details I had previously ignored and could mentally simulate movements I now had some physical reference
+                for. Concepts like shifting my center of gravity or steering with my back foot were no longer abstract.
             </p>
             <p>
-                On my third trip, I mostly experimented. I had some instruction, a partial physical model, and a desire to test hypotheses. After a few falls, I managed to ride down the bunny hill. I had finally connected actions&mdash;specific body commands&mdash;to outcomes I had previously only seen in videos.
+                On my third trip, I mostly experimented. I had some instruction, a partial physical model, and a desire
+                to test hypotheses. After a few falls, I managed to ride down the bunny hill. I had finally connected
+                actions&mdash;specific body commands&mdash;to outcomes I had previously only seen in videos.
             </p>
             <p>
-                I am not a good snowboarder, and this is not a prescription for how people should learn sports. But the experience provides a useful reference frame for how robots might learn new skills.
+                I am not a good snowboarder, and this is not a prescription for how people should learn sports. But the
+                experience provides a useful reference frame for how robots might learn new skills.
             </p>
 
             <h2>Mapping the Analogy to Robot Learning</h2>
@@ -100,22 +142,32 @@
             <p>In this framing:</p>
 
             <ul>
-                <li><strong>Instruction and feedback</strong> are analogous to imitation learning with dense supervision.</li>
-                <li><strong>Watching videos</strong> corresponds to learning a world model&mdash;understanding what outcomes are possible and how the world behaves.</li>
-                <li><strong>Trying things out</strong> and mapping actions to outcomes is reinforcement learning, grounded in embodiment-specific control.</li>
+                <li><strong>Instruction and feedback</strong> are analogous to imitation learning with dense
+                    supervision.</li>
+                <li><strong>Watching videos</strong> corresponds to learning a world model&mdash;understanding what
+                    outcomes are possible and how the world behaves.</li>
+                <li><strong>Trying things out</strong> and mapping actions to outcomes is reinforcement learning,
+                    grounded in embodiment-specific control.</li>
             </ul>
 
             <p>
-                I've intentionally left out memory, planning, and continual improvement here, even though they are critical, because adding them would complicate the comparison. In this document, I will only talk about the world model. In later articles, I'll cover the other components.
+                I've intentionally left out memory, planning, and continual improvement here, even though they are
+                critical, because adding them would complicate the comparison. In this document, I will only talk about
+                the world model. In later articles, I'll cover the other components.
             </p>
 
             <h2>So How Do VLAs Stack Up?</h2>
 
             <p>
-                The core problem in robot learning is mapping high-level goals&mdash;which may span seconds to minutes&mdash;into sequences of embodied actions. Vision-language models are convenient tools for decomposing high-level tasks. Trained on vast internet-scale datasets, they are good at semantic understanding and instruction following.
+                The core problem in robot learning is mapping high-level goals&mdash;which may span seconds to
+                minutes&mdash;into sequences of embodied actions. Vision-language models are convenient tools for
+                decomposing high-level tasks. Trained on vast internet-scale datasets, they are good at semantic
+                understanding and instruction following.
             </p>
             <p>
-                In that sense, VLAs provide some form of long-horizon planning. Compared to approaches like pure diffusion policies or action-chunking transformers, VLAs at least attempt to reason over extended task structure.
+                In that sense, VLAs provide some form of long-horizon planning. Compared to approaches like pure
+                diffusion policies or action-chunking transformers, VLAs at least attempt to reason over extended task
+                structure.
             </p>
             <p>
                 But are they good world models for robotics? I'm skeptical.
@@ -124,20 +176,32 @@
                 This skepticism comes from two related issues:
             </p>
             <ol>
-                <li><strong>Task misalignment:</strong> The pretraining objectives of vision&ndash;language models (captioning, QA, instruction following) are weakly aligned with the requirements of physical interaction <a href="#ref-2">[2]</a>.</li>
-                <li><strong>Latent usefulness:</strong> Task formulation and training objectives strongly affect the semantics and utility of learned latent representations <a href="#ref-3">[3]</a>, <a href="#ref-4">[4]</a>.</li>
+                <li><strong>Task misalignment:</strong> The pretraining objectives of vision&ndash;language models
+                    (captioning, QA, instruction following) are weakly aligned with the requirements of physical
+                    interaction <a href="#ref-2">[2]</a>.</li>
+                <li><strong>Latent usefulness:</strong> Task formulation and training objectives strongly affect the
+                    semantics and utility of learned latent representations <a href="#ref-3">[3]</a>, <a
+                        href="#ref-4">[4]</a>.</li>
             </ol>
             <p>
-                In most VLA architectures, the vision&ndash;language model is asked to serve both as a world model and as a planner. Alternative formulations, such as System 1 / System 2 distinctions or hierarchical architectures, still rely on heuristics to connect high-level reasoning to low-level control <a href="#ref-5">[5]</a>, <a href="#ref-6">[6]</a>.
+                In most VLA architectures, the vision&ndash;language model is asked to serve both as a world model and
+                as a planner. Alternative formulations, such as System 1 / System 2 distinctions or hierarchical
+                architectures, still rely on heuristics to connect high-level reasoning to low-level control <a
+                    href="#ref-5">[5]</a>, <a href="#ref-6">[6]</a>.
             </p>
             <p>
-                Sometimes every observation is routed through the vision&ndash;language model before reaching the expert head. Sometimes a high-level latent is refreshed at a slower rate. Although the details of Harmonic reasoning <a href="#ref-7">[7]</a> are not clear, it hints at this problem and suggests that simultaneously thinking and acting is necessary.
+                Sometimes every observation is routed through the vision&ndash;language model before reaching the expert
+                head. Sometimes a high-level latent is refreshed at a slower rate. Although the details of Harmonic
+                reasoning <a href="#ref-7">[7]</a> are not clear, it hints at this problem and suggests that
+                simultaneously thinking and acting is necessary.
             </p>
             <p>
-                So why are VLAs so popular? Simply put: because vision&ndash;language models are abundant and open-source. They are easy to plug in, and they have been trained on internet-scale data.
+                So why are VLAs so popular? Simply put: because vision&ndash;language models are abundant and
+                open-source. They are easy to plug in, and they have been trained on internet-scale data.
             </p>
             <p>
-                I don't want to discount the success and impressive results we've seen from VLAs. My point is that perhaps there is another formulation we need to consider.
+                I don't want to discount the success and impressive results we've seen from VLAs. My point is that
+                perhaps there is another formulation we need to consider.
             </p>
 
             <h2>World Models for Robotics</h2>
@@ -146,24 +210,43 @@
                 If VLAs are not the right world models, what is?
             </p>
             <p>
-                I argue that we need <strong>forward dynamics models trained across diverse scenarios</strong>. These are models that explicitly learn how the world evolves under a given action. Humans think (plan) not by generating language <a href="#ref-8">[8]</a> tokens, but by mentally simulating outcomes grounded in physics and embodiment. Chomsky argues the opposite about the role of language in thinking <a href="#ref-9">[9]</a>, however I favor the former viewpoint.
+                I argue that we need <strong>forward dynamics models trained across diverse scenarios</strong>. These
+                are models that explicitly learn how the world evolves under a given action. Humans think (plan) not by
+                generating language <a href="#ref-8">[8]</a> tokens, but by mentally simulating outcomes grounded in
+                physics and embodiment. Chomsky argues the opposite about the role of language in thinking <a
+                    href="#ref-9">[9]</a>, however I favor the former viewpoint.
             </p>
             <p>
-                A world model is conditioned on state and action and predicts future states. Whether such models should predict pixels is an open question. State could include recent visual observations, context, or other sensory inputs. Task formulation in world models is still an open problem. Some believe in pixels while others believe in embeddings. Pixel reconstruction may help learn different representations than predicting embeddings, but perhaps pixel reconstruction is a tool to visualize the internal thinking of the model. The dynamic module in Genie <a href="#ref-12">[12]</a> takes visual latents and latent actions&mdash;learned from unlabeled videos&mdash;and predicts the visual latents for the future step. Pixel reconstruction is used to train the video tokenizer. JEPA-style world models <a href="#ref-13">[13]</a> are similar to the dynamic modules of Genie, but the training objective is formulated differently.
+                A world model is conditioned on state and action and predicts future states. Whether such models should
+                predict pixels is an open question. State could include recent visual observations, context, or other
+                sensory inputs. Task formulation in world models is still an open problem. Some believe in pixels while
+                others believe in embeddings. Pixel reconstruction may help learn different representations than
+                predicting embeddings, but perhaps pixel reconstruction is a tool to visualize the internal thinking of
+                the model. The dynamic module in Genie <a href="#ref-12">[12]</a> takes visual latents and latent
+                actions&mdash;learned from unlabeled videos&mdash;and predicts the visual latents for the future step.
+                Pixel reconstruction is used to train the video tokenizer. JEPA-style world models <a
+                    href="#ref-13">[13]</a> are similar to the dynamic modules of Genie, but the training objective is
+                formulated differently.
             </p>
 
             <blockquote>
-                Does our internal model of the world just learn an abstract representation of what we have observed, or is it a high-fidelity reconstruction of what has happened and is about to happen? Should the internal visualization be a detailed rollout of an event or just a sketch of it?
+                Does our internal model of the world just learn an abstract representation of what we have observed, or
+                is it a high-fidelity reconstruction of what has happened and is about to happen? Should the internal
+                visualization be a detailed rollout of an event or just a sketch of it?
             </blockquote>
 
             <p>
-                The cartoon from the 2018 World Models paper <a href="#ref-10">[10]</a> shows a cyclist with a simplified version of himself riding his bike. Scott McCloud's <em>Understanding Comics</em> <a href="#ref-11">[11]</a> offers similar insight into how abstraction and fidelity trade off in representation.
+                The cartoon from the 2018 World Models paper <a href="#ref-10">[10]</a> shows a cyclist with a
+                simplified version of himself riding his bike. Scott McCloud's <em>Understanding Comics</em> <a
+                    href="#ref-11">[11]</a> offers similar insight into how abstraction and fidelity trade off in
+                representation.
             </p>
 
             <h2>What Roles Can a World Model Play?</h2>
 
             <p>
-                World models can be used in the gaming industry, virtual worlds in VR, or they can be more specific to a process, such as a fluid simulator. In robot learning, a world model can serve multiple roles:
+                World models can be used in the gaming industry, virtual worlds in VR, or they can be more specific to a
+                process, such as a fluid simulator. In robot learning, a world model can serve multiple roles:
             </p>
 
             <ul>
@@ -173,50 +256,82 @@
             </ul>
 
             <p>
-                To better understand the landscape of simulators, we can evaluate current offerings along three axes: physics simulation, asset generation, and skill training.
+                To better understand the landscape of simulators, we can evaluate current offerings along three axes:
+                physics simulation, asset generation, and skill training.
             </p>
 
             <h3>Physics Simulation</h3>
 
             <p>
-                Physics simulation enables policy rollout, imagination, evaluation, and synthetic data generation. Accuracy and ease of setup are critical. The lack of fidelity leads to a sim-to-real gap, and intense setup activities lead to a barrier to entry when it comes to the use of physics-based simulators in robot learning.
+                Physics simulation enables policy rollout, imagination, evaluation, and synthetic data generation.
+                Accuracy and ease of setup are critical. The lack of fidelity leads to a sim-to-real gap, and intense
+                setup activities lead to a barrier to entry when it comes to the use of physics-based simulators in
+                robot learning.
             </p>
             <p>
-                Current well-known simulators such as <strong>Isaac Sim</strong> integrate physics, rendering, sensors, and robotics workflows. Isaac Sim uses PhysX, a simulator for rigid bodies, articulations, soft bodies, and friction. It is becoming easier to use but still leans heavily on an expert user for setup. <strong>Warp</strong> is a GPU-accelerated spatial computing and simulation framework that compiles Python kernels into fast CUDA code, with differentiable and vectorized primitives. <strong>MuJoCo</strong> is a lightweight and high-performance physics engine focused on articulated body dynamics and contact simulation, widely used in research and control. <strong>Newton</strong> is a new open-source, GPU-accelerated physics engine that targets robotics, built on Warp and integrating MuJoCo-Warp solvers.
+                Current well-known simulators such as <strong>Isaac Sim</strong> integrate physics, rendering, sensors,
+                and robotics workflows. Isaac Sim uses PhysX, a simulator for rigid bodies, articulations, soft bodies,
+                and friction. It is becoming easier to use but still leans heavily on an expert user for setup.
+                <strong>Warp</strong> is a GPU-accelerated spatial computing and simulation framework that compiles
+                Python kernels into fast CUDA code, with differentiable and vectorized primitives.
+                <strong>MuJoCo</strong> is a lightweight and high-performance physics engine focused on articulated body
+                dynamics and contact simulation, widely used in research and control. <strong>Newton</strong> is a new
+                open-source, GPU-accelerated physics engine that targets robotics, built on Warp and integrating
+                MuJoCo-Warp solvers.
             </p>
             <p>
-                All of these simulators and frameworks require someone to build assets and set up environments on top of defining the physics logic, physical properties of materials, etc. A user has to either define the workflow through a graph or write code to perform a task.
+                All of these simulators and frameworks require someone to build assets and set up environments on top of
+                defining the physics logic, physical properties of materials, etc. A user has to either define the
+                workflow through a graph or write code to perform a task.
             </p>
 
             <h3>Skill Training</h3>
 
             <p>
-                Skill training frameworks define tasks, train policies, evaluate policy performance, and deploy models. This layer is relatively new, but tightly coupled to the simulator beneath it. Isaac Labs, for instance, is built on the same simulators offered by NVIDIA. However, to experiment with different models, a more modular skill training framework is needed. Such a framework needs to have abstraction around the simulator (a.k.a. world model), open-source models such as LeRobot, configuration management, native experiment tracking, and more importantly, experiment analysis.
+                Skill training frameworks define tasks, train policies, evaluate policy performance, and deploy models.
+                This layer is relatively new, but tightly coupled to the simulator beneath it. Isaac Labs, for instance,
+                is built on the same simulators offered by NVIDIA. However, to experiment with different models, a more
+                modular skill training framework is needed. Such a framework needs to have abstraction around the
+                simulator (a.k.a. world model), open-source models such as LeRobot, configuration management, native
+                experiment tracking, and more importantly, experiment analysis.
             </p>
 
             <h3>Asset Generation</h3>
 
             <p>
-                Asset generation is the artistic and historically most brittle part of robot learning. Scenes, materials, textures, lighting, and geometry all live here. Creating diverse, realistic assets has traditionally required specialized skill sets (graphics, simulation expertise) and significant manual effort. As a result, <strong>dataset diversity is bottlenecked by asset creation speed</strong>.
+                Asset generation is the artistic and historically most brittle part of robot learning. Scenes,
+                materials, textures, lighting, and geometry all live here. Creating diverse, realistic assets has
+                traditionally required specialized skill sets (graphics, simulation expertise) and significant manual
+                effort. As a result, <strong>dataset diversity is bottlenecked by asset creation speed</strong>.
             </p>
             <p>
-                While physics simulators can support photorealistic rendering, asset pipelines remain difficult to scale. This has limited the diversity and realism of simulated training environments. A solution that can easily scale scene creation and augment the diversity of assets is a natural step in getting over the data bottleneck in robot learning.
+                While physics simulators can support photorealistic rendering, asset pipelines remain difficult to
+                scale. This has limited the diversity and realism of simulated training environments. A solution that
+                can easily scale scene creation and augment the diversity of assets is a natural step in getting over
+                the data bottleneck in robot learning.
             </p>
 
             <h2>Why World Models Matter Now</h2>
 
             <p>
-                We are at an inflection point. <strong>Learned world models allow us to collapse the boundary between physics simulation and asset generation.</strong>
+                We are at an inflection point. <strong>Learned world models allow us to collapse the boundary between
+                    physics simulation and asset generation.</strong>
             </p>
             <p>
-                World models are, in fact, neural simulators. They learn both dynamics and appearance from data. While they do not fully solve asset generation, they dramatically reduce the dependency on hand-authored scenes.
+                World models are, in fact, neural simulators. They learn both dynamics and appearance from data. While
+                they do not fully solve asset generation, they dramatically reduce the dependency on hand-authored
+                scenes.
             </p>
             <p>
                 Today, there are two emerging approaches:
             </p>
             <ul>
-                <li><strong>Synthetic-first:</strong> Generate an initial scene using an image generator, then use that image as the starting state for a world model rollout. This approach can be effective for long-tail problems or pre/post-training agents.</li>
-                <li><strong>Real-first:</strong> Capture a real image, apply generative augmentation, then pass the result into a world model. This is an effective approach to harnessing the abundance of images on the internet.</li>
+                <li><strong>Synthetic-first:</strong> Generate an initial scene using an image generator, then use that
+                    image as the starting state for a world model rollout. This approach can be effective for long-tail
+                    problems or pre/post-training agents.</li>
+                <li><strong>Real-first:</strong> Capture a real image, apply generative augmentation, then pass the
+                    result into a world model. This is an effective approach to harnessing the abundance of images on
+                    the internet.</li>
             </ul>
             <p>
                 Both approaches can generate effectively unbounded data for robot learning.
@@ -228,13 +343,23 @@
                 One major issue remains: how we interact with these environments.
             </p>
             <p>
-                Even though we can generate many scenarios, the interaction and control of the world model remains a challenge. One approach today is <strong>neural trajectories</strong>: a series of pseudo-actions extracted through an inverse dynamics model or latent actions from unlabeled videos <a href="#ref-12">[12]</a>, <a href="#ref-15">[15]</a>. The obvious next step is to augment trajectories in a way that remains feasible across different scenes and dynamics. In other words, trajectories should become templates that can be adapted, transformed, and recomposed&mdash;serving as structured priors. This is best viewed as exploiting human-generated trajectories, not merely replaying them.
+                Even though we can generate many scenarios, the interaction and control of the world model remains a
+                challenge. One approach today is <strong>neural trajectories</strong>: a series of pseudo-actions
+                extracted through an inverse dynamics model or latent actions from unlabeled videos <a
+                    href="#ref-12">[12]</a>, <a href="#ref-15">[15]</a>. The obvious next step is to augment
+                trajectories in a way that remains feasible across different scenes and dynamics. In other words,
+                trajectories should become templates that can be adapted, transformed, and recomposed&mdash;serving as
+                structured priors. This is best viewed as exploiting human-generated trajectories, not merely replaying
+                them.
             </p>
 
             <h2>Final Thoughts</h2>
 
             <p>
-                World models are simulators without hand-built physics, internal predictive models for planning, testbeds for policy evaluation, and large-scale data augmentation and generation engines. We are seeing early results from groups such as 1X <a href="#ref-16">[16]</a> and Wayve <a href="#ref-17">[17]</a> that show the effectiveness of world models.
+                World models are simulators without hand-built physics, internal predictive models for planning,
+                testbeds for policy evaluation, and large-scale data augmentation and generation engines. We are seeing
+                early results from groups such as 1X <a href="#ref-16">[16]</a> and Wayve <a href="#ref-17">[17]</a>
+                that show the effectiveness of world models.
             </p>
             <p>
                 What's missing today is a widely accessible world model suite that integrates:
@@ -262,23 +387,44 @@
             <h2 id="references">References</h2>
 
             <ol class="references">
-                <li id="ref-1">Intelligence, P., Amin, A., Aniceto, R., Balakrishna, A., Black, K., Conley, K., ... &amp; Zhou, Z. (2025). &pi;<sub>0.6</sub>: a VLA That Learns From Experience. <em>arXiv preprint arXiv:2511.14759</em>.</li>
-                <li id="ref-2">Jim Fan. <a href="https://x.com/DrJimFan/status/2005340845055340558" target="_blank">X/Twitter post</a>.</li>
-                <li id="ref-3">Kumar, A., et al. "Questioning Representational Optimism in Deep Learning: The Fractured Entangled Representation Hypothesis." <em>arXiv preprint arXiv:2505.11581</em> (2025).</li>
-                <li id="ref-4">Dieleman, S. "Generative Modelling in Latent Space." <em>Sander.ai</em>, 15 Apr. 2025. <a href="https://sander.ai/2025/04/15/latents.html" target="_blank">Link</a>.</li>
-                <li id="ref-5">"Helix: A Vision-Language-Action Model for Generalist Humanoid Control." <em>Figure AI</em>, 20 Feb. 2025. <a href="https://www.figure.ai/news/helix" target="_blank">Link</a>.</li>
-                <li id="ref-6">Bjorck, J., et al. "Gr00t N1: An Open Foundation Model for Generalist Humanoid Robots." <em>arXiv preprint arXiv:2503.14734</em> (2025).</li>
-                <li id="ref-7">Generalist AI Team. "GEN-0 / Embodied Foundation Models That Scale with Physical Interaction." <em>Generalist AI Blog</em>, 4 Nov. 2025. <a href="https://generalistai.com/blog/nov-04-2025-GEN-0" target="_blank">Link</a>.</li>
-                <li id="ref-8">Fedorenko, E., Piantadosi, S.T., Gibson, E.A.F. "Language is primarily a tool for communication rather than thought." <em>Nature</em>. 2024 Jun;630(8017):575-586.</li>
+                <li id="ref-1">Intelligence, P., Amin, A., Aniceto, R., Balakrishna, A., Black, K., Conley, K., ...
+                    &amp; Zhou, Z. (2025). &pi;<sub>0.6</sub>: a VLA That Learns From Experience. <em>arXiv preprint
+                        arXiv:2511.14759</em>.</li>
+                <li id="ref-2">Jim Fan. <a href="https://x.com/DrJimFan/status/2005340845055340558"
+                        target="_blank">X/Twitter post</a>.</li>
+                <li id="ref-3">Kumar, A., et al. "Questioning Representational Optimism in Deep Learning: The Fractured
+                    Entangled Representation Hypothesis." <em>arXiv preprint arXiv:2505.11581</em> (2025).</li>
+                <li id="ref-4">Dieleman, S. "Generative Modelling in Latent Space." <em>Sander.ai</em>, 15 Apr. 2025. <a
+                        href="https://sander.ai/2025/04/15/latents.html" target="_blank">Link</a>.</li>
+                <li id="ref-5">"Helix: A Vision-Language-Action Model for Generalist Humanoid Control." <em>Figure
+                        AI</em>, 20 Feb. 2025. <a href="https://www.figure.ai/news/helix" target="_blank">Link</a>.</li>
+                <li id="ref-6">Bjorck, J., et al. "Gr00t N1: An Open Foundation Model for Generalist Humanoid Robots."
+                    <em>arXiv preprint arXiv:2503.14734</em> (2025).
+                </li>
+                <li id="ref-7">Generalist AI Team. "GEN-0 / Embodied Foundation Models That Scale with Physical
+                    Interaction." <em>Generalist AI Blog</em>, 4 Nov. 2025. <a
+                        href="https://generalistai.com/blog/nov-04-2025-GEN-0" target="_blank">Link</a>.</li>
+                <li id="ref-8">Fedorenko, E., Piantadosi, S.T., Gibson, E.A.F. "Language is primarily a tool for
+                    communication rather than thought." <em>Nature</em>. 2024 Jun;630(8017):575-586.</li>
                 <li id="ref-9">Chomsky, N. <em>What Kind of Creatures Are We?</em> Columbia University Press, 2016.</li>
-                <li id="ref-10">Ha, D. &amp; Schmidhuber, J. "World Models." <em>arXiv preprint arXiv:1803.10122</em> (2018).</li>
-                <li id="ref-11">McCloud, S. <em>Understanding Comics</em>. <a href="https://goo.gl/5Tndi4" target="_blank">Link</a>.</li>
-                <li id="ref-12">Bruce, J., et al. "Genie: Generative Interactive Environments." <em>Forty-first International Conference on Machine Learning</em>. 2024.</li>
-                <li id="ref-13">Assran, M., et al. "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning." <em>arXiv preprint arXiv:2506.09985</em> (2025).</li>
-                <li id="ref-14">Yu, A., et al. "Learning Visual Parkour from Generated Images." <em>8th Annual Conference on Robot Learning</em>. 2024.</li>
-                <li id="ref-15">Jang, J., et al. "DreamGen: Unlocking Generalization in Robot Learning through Video World Models." <em>arXiv preprint arXiv:2505.12705</em> (2025).</li>
-                <li id="ref-16">1X AI Team. "1X World Model | From Video to Action: A New Way Robots Learn." <em>1X</em>, 12 Jan. 2026. <a href="https://www.1x.tech/discover/world-model-self-learning" target="_blank">Link</a>.</li>
-                <li id="ref-17">Wayve. "GAIA-3: Scaling World Models to Power Safety and Evaluation." <em>Wayve</em>, 2 Dec. 2025. <a href="https://wayve.ai/thinking/gaia-3/" target="_blank">Link</a>.</li>
+                <li id="ref-10">Ha, D. &amp; Schmidhuber, J. "World Models." <em>arXiv preprint arXiv:1803.10122</em>
+                    (2018).</li>
+                <li id="ref-11">McCloud, S. <em>Understanding Comics</em>. <a href="https://goo.gl/5Tndi4"
+                        target="_blank">Link</a>.</li>
+                <li id="ref-12">Bruce, J., et al. "Genie: Generative Interactive Environments." <em>Forty-first
+                        International Conference on Machine Learning</em>. 2024.</li>
+                <li id="ref-13">Assran, M., et al. "V-JEPA 2: Self-Supervised Video Models Enable Understanding,
+                    Prediction and Planning." <em>arXiv preprint arXiv:2506.09985</em> (2025).</li>
+                <li id="ref-14">Yu, A., et al. "Learning Visual Parkour from Generated Images." <em>8th Annual
+                        Conference on Robot Learning</em>. 2024.</li>
+                <li id="ref-15">Jang, J., et al. "DreamGen: Unlocking Generalization in Robot Learning through Video
+                    World Models." <em>arXiv preprint arXiv:2505.12705</em> (2025).</li>
+                <li id="ref-16">1X AI Team. "1X World Model | From Video to Action: A New Way Robots Learn."
+                    <em>1X</em>, 12 Jan. 2026. <a href="https://www.1x.tech/discover/world-model-self-learning"
+                        target="_blank">Link</a>.
+                </li>
+                <li id="ref-17">Wayve. "GAIA-3: Scaling World Models to Power Safety and Evaluation." <em>Wayve</em>, 2
+                    Dec. 2025. <a href="https://wayve.ai/thinking/gaia-3/" target="_blank">Link</a>.</li>
             </ol>
 
         </div>
@@ -297,4 +443,5 @@
 
     <script src="../js/main.js"></script>
 </body>
+
 </html>

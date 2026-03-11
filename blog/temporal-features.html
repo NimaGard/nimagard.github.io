@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In the Pursuit of Temporal Features - Nima Gard</title>
+    <meta name="description" content="What are temporal features, where to find them.">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/blog.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .color-wan21 {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.7));
+        }
+
+        .dot-wan21 {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">NG</a>
+            <div class="nav-links">
+                <a href="/#about">About</a>
+                <a href="/#research">Research</a>
+                <a href="/#talks">Talks</a>
+                <a href="/blog/">Blog</a>
+            </div>
+            <button class="theme-toggle" aria-label="Toggle theme">
+                <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <path
+                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+                <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <article class="blog-post">
+        <a href="/blog/" class="blog-back">&larr; Back to blog</a>
+
+        <header class="blog-post-header anim-fade-up">
+            <div class="blog-post-meta">
+                <span>Mar 10, 2026</span>
+            </div>
+            <h1>In the Pursuit of Temporal Features</h1>
+            <div class="blog-preview-tags">
+                <span class="tag">Representation Learning</span>
+                <span class="tag">World Models</span>
+                <span class="tag">Robot Learning</span>
+            </div>
+            <video src="/assets/blog/temporal-features/cover-video.mp4" alt="Temporal features" class="blog-cover-img"
+                playsinline muted loop autoplay>
+                Your browser does not support the video tag.
+            </video>
+        </header>
+
+        <div class="blog-post-body anim-fade-up" style="--delay: 0.15s">
+
+            <!-- ═══════════ Section 1: Opening ═══════════ -->
+
+            <p>
+                A robot arm reaches for a mug. It has seen this mug before in a thousand training videos,
+                being grasped, lifted, placed. But today the mug is wet. The hand slips. The mug begins to fall.
+                The robot has 200 milliseconds to respond, which is not enough time to re-plan from scratch, but enough
+                to catch the mug if it understands that <em>falling</em> is happening. Not what the mug
+                looks like (spatial features), but what it is <em>doing</em> (temporal features).
+            </p>
+            <p>
+                This distinction between <em>what</em> and <em>what happens</em> sits at the heart of
+                every challenge in video understanding, temporal consistency in generation,
+                action prediction for control, physics simulation for planning, and more recently world modeling and
+                memory. They all require a model to have some internal representation of how the world changes across
+                time. <strong>Do today's video models actually represent time,
+                    or do they just process frames?</strong>
+            </p>
+
+            <div class="image-pair">
+                <img src="/assets/blog/temporal-features/ball-in-hand.jpg" alt="Ball in hand">
+                <img src="/assets/blog/temporal-features/ball-in-hand-rotated.jpg" alt="Ball in hand, rotated">
+            </div>
+
+            <p>
+                Consider these two images. They are identical. One is the other rotated 180 degrees.
+                In the left image, the ball seems to be tossed upward. In the right, it appears to fall.
+                A single frame is fundamentally ambiguous about dynamics. A video would resolve this
+                instantly, but only if the model can read the <em>temporal structure</em> of the frames,
+                not just their spatial content.
+            </p>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 2: What are temporal features? ═══════════ -->
+
+            <h2>What are temporal features?</h2>
+
+            <p>
+                Think of a filmstrip where each frame captures spatial features such as objects,
+                textures, colors, and geometry. The whole sequence, though, tells a story of how the world changes across
+                time. <strong>Spatial features</strong> are everything you could learn from
+                a single frame: there is a hand, there is a ball, the background is blue.
+                <strong>Temporal features</strong> are what emerges from the <em>sequence</em>: the ball is moving
+                upward, the hand is opening, the ball will leave the hand in two frames.
+                These aren't properties of any single frame; they're properties of transitions between frames.
+            </p>
+
+            <p>
+                When we think about temporal features, there are two questions that come to mind:
+            </p>
+            <ul>
+                <li>
+                    <em>Are temporal features learned dynamics?</em>
+
+                    In other words, are temporal features technically a function that evolves the spatial
+                    features due to an action?
+                    \(z_{t+1} = f(z_t | a_t)\), where \(f(.)\) is the temporal feature.
+                </li>
+                <li>
+                    <em>Can temporal features exist without spatial features?</em>
+
+                    Are temporal features just like any other type of feature, but dependent on the spatial
+                    features?
+                    For instance, is <em>picking up</em> a cup
+                    different from <em>picking up</em> an orange?
+                </li>
+            </ul>
+
+            <p>
+                Consider a classical example: spatial features can be extracted from individual frames using techniques
+                like the Sobel operator, while temporal features can be captured using optical flow. Optical flow is a
+                hand-crafted temporal feature that takes the spatial features from two consecutive frames and outputs how
+                those features move from one frame to the next.
+            </p>
+            <figure class="blog-figure reveal">
+                <img src="/assets/blog/temporal-features/spatial-vs-temporal.jpg"
+                    alt="Original frame, Sobel edges (spatial features), and optical flow (temporal features)"
+                    class="narrow">
+                <figcaption class="blog-figcaption">
+                    <strong>Classical spatial and temporal features.</strong> Left: original frame.
+                    Middle: Sobel edges (spatial structure: object boundaries, texture).
+                    Right: optical flow magnitude (temporal structure: what moved between frames).
+                </figcaption>
+            </figure>
+
+            <p>
+                Now let's look at what modern video models actually learn. I fed the same robot
+                manipulation <a href="https://www.genrobot.ai/data/open-dataset" target="_blank">video</a> into four
+                pretrained models and visualized their internal features
+                using PCA. Each model's high-dimensional hidden states are projected down to 3 components
+                and mapped to RGB. Regions with the same color have similar features;
+                color changes across frames reveal temporal dynamics.
+            </p>
+
+            <figure class="blog-figure reveal">
+                <div style="display:flex; flex-direction:column; gap:2.5rem;">
+                    <!-- Input frames row -->
+                    <div>
+                        <div
+                            style="font-size:0.82em; font-weight:600; margin-bottom: 0.35em; text-align:left; color:var(--text-secondary);">
+                            Input frames</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="/assets/blog/temporal-features/pca-strip-original.jpg" alt="Original video frames"
+                                style="flex:1; border-radius:4px;">
+                        </div>
+                    </div>
+                    <!-- VJEPA2 row -->
+                    <div>
+                        <div style="font-size:0.82em; font-weight:600; margin-bottom: 0.35em; text-align:left;"><span
+                                class="dot-vjepa2">&#9679;</span> VJEPA2
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="/assets/blog/temporal-features/pca-strip-vjepa2.jpg" alt="VJEPA2 PCA features"
+                                style="flex:1; border-radius:4px;">
+                        </div>
+                    </div>
+                    <!-- TimeSformer row -->
+                    <div>
+                        <div style="font-size:0.82em; font-weight:600; margin-bottom: 0.35em; text-align:left;"><span
+                                class="dot-timesformer">&#9679;</span> TimeSformer
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="/assets/blog/temporal-features/pca-strip-timesformer.jpg"
+                                alt="TimeSformer PCA features" style="flex:1; border-radius:4px;">
+                        </div>
+                    </div>
+                    <!-- ViViT row -->
+                    <div>
+                        <div style="font-size:0.82em; font-weight:600; margin-bottom: 0.35em; text-align:left;"><span
+                                class="dot-vivit">&#9679;</span> ViViT
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="/assets/blog/temporal-features/pca-strip-vivit.jpg" alt="ViViT PCA features"
+                                style="flex:1; border-radius:4px;">
+                        </div>
+                    </div>
+                    <!-- Wan 2.1 VAE row -->
+                    <div>
+                        <div style="font-size:0.82em; font-weight:600; margin-bottom: 0.35em; text-align:left;"><span
+                                class="dot-wan21">&#9679;</span> Wan 2.1 VAE
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <img src="/assets/blog/temporal-features/pca-strip-wan21.jpg" alt="Wan 2.1 VAE PCA features"
+                                style="flex:1; border-radius:4px;">
+                        </div>
+                    </div>
+                </div>
+                <figcaption class="blog-figcaption">
+                    <strong>PCA of internal features</strong> (first 3 principal components mapped to RGB).
+                    Each row shows 4 evenly-spaced frames from the same robot manipulation video.
+                    <strong>VJEPA2</strong> (last layer, 16&times;16, 22% variance in 3 PCs): rich, distributed
+                    features with clear object segmentation.
+                    <strong>TimeSformer</strong> (last layer, 14&times;14, 96% variance): nearly all information
+                    in 3 dimensions&mdash;a low-rank representation shaped by classification.
+                    <strong>ViViT</strong> (last layer, 14&times;14, 90% variance): similar low-rank pattern.
+                    <strong>Wan 2.1 VAE</strong> (mid-block, 32&times;32, 57% variance): highest spatial detail
+                    with clear object contours&mdash;convolutional architecture preserves local structure.
+                </figcaption>
+            </figure>
+            <p>
+                It's clear that spatial features from modern and classical models are quite different. Some are more abstract, and some are more object-like.
+                This raises a natural question: can we organize temporal features into a similar hierarchy?
+            </p>
+
+            <h3>An abstraction ladder for temporal features</h3>
+
+            <p>
+                Spatial features have an established abstraction hierarchy: edges &rarr; textures &rarr;
+                parts &rarr; objects &rarr; scenes, where each level builds on the one below.
+                Temporal features don't have an equivalent canonical ladder yet, but we can sketch one
+                by looking at how the field has evolved.
+            </p>
+
+            <table class="comparison-table reveal">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>What it encodes</th>
+                        <th>Example</th>
+                        <th>Spatial parallel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1. Motion</td>
+                        <td>Pixel displacement between frames</td>
+                        <td>Optical flow</td>
+                        <td>Edges</td>
+                    </tr>
+                    <tr>
+                        <td>2. Spatiotemporal patterns</td>
+                        <td>Local motion+appearance primitives</td>
+                        <td>3D conv filters (<span class="dot-wan21">&#9679;</span>)</td>
+                        <td>Textures</td>
+                    </tr>
+                    <tr>
+                        <td>3. Cross-frame relations</td>
+                        <td>Correspondence across time</td>
+                        <td>Video transformer attention (<span class="dot-timesformer">&#9679;</span> <span
+                                class="dot-vivit">&#9679;</span>)</td>
+                        <td>Parts</td>
+                    </tr>
+                    <tr>
+                        <td>4. Predictive features</td>
+                        <td>Representations enabling future prediction</td>
+                        <td>Masked video modeling (<span class="dot-vjepa2">&#9679;</span>)</td>
+                        <td>Objects</td>
+                    </tr>
+                    <tr>
+                        <td>5. Dynamics</td>
+                        <td>Latent physics / world model</td>
+                        <td> Inverse dynamics module (<span class="dot-vjepa2">&#9679;</span>)</td>
+                        <td>Scene understanding</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>
+                At Level 1, temporal features are just motion: how pixels shift between frames. Classical
+                optical flow lives here. At Level 2, 3D convolutions learn local spatiotemporal primitives
+                like a moving edge or a closing gripper; Wan 2.1's causal-conv VAE operates at this level.
+                Level 3 is where video transformers sit. TimeSformer and ViViT learn cross-frame
+                attention patterns, but their extremely low-rank PCA (90&ndash;96% variance in 3 components)
+                suggests they compress away most temporal structure in favor of classification-relevant features.
+            </p>
+            <p>
+                Level 4 is where self-supervised models like VJEPA2 operate. They learn representations
+                that make the future <em>predictable</em>, and VJEPA2's PCA captures only 22% of the variance in 3
+                components because the information is distributed across a high-dimensional manifold encoding
+                dynamics, not just appearance.
+            </p>
+            <p>
+                Level 5&mdash;latent physics&mdash;is where temporal features are not
+                trajectories but the <em>laws</em> governing transitions: \(z_{t+1} = f(z_t, a_t)\),
+                where \(f\) encodes how actions transform states. Perhaps this is the level we need in robotics:
+                not "the cup moved right" but "pushing a rigid object on a smooth surface produces
+                predictable sliding."
+            </p>
+
+            <div class="callout">
+                Spatial features represent <em>what exists</em>.
+                <br>
+                Temporal features represent <em>how the world changes</em>.
+            </div>
+
+            <p>
+                The question, then, is not whether videos contain temporal information (they obviously do),
+                but whether neural networks that process videos build <em>separate internal representations</em>
+                for temporal and spatial features, or whether these are hopelessly entangled&mdash;and at which
+                level of this ladder each model actually operates.
+            </p>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 3: How models process video ═══════════ -->
+
+            <h2>How models process video</h2>
+
+            <p>
+                There are broadly four architectural approaches to feeding video into a neural network.
+                Each makes a different implicit assumption about the relationship between time and space.
+            </p>
+
+            <div class="approach-grid reveal">
+                <div class="approach-card">
+                    <div class="approach-number">01</div>
+                    <h4>Frame-by-frame + temporal aggregation</h4>
+                    <p>
+                        Treat each frame independently through a 2D backbone, reshape to
+                        <code>(B&middot;T) C H W</code>, then aggregate temporally with
+                        an RNN, LSTM, or temporal pooling.
+                    </p>
+                    <div class="approach-models">ConvLSTM, early action recognition</div>
+                </div>
+                <div class="approach-card">
+                    <div class="approach-number">02</div>
+                    <h4>3D convolution</h4>
+                    <p>
+                        Treat the video as a 3D volume <code>B C T H W</code> and apply 3D convolutions
+                        that span space and time simultaneously. A step in time is equivalent to a
+                        step in space.
+                    </p>
+                    <div class="approach-models">
+                        <a href="https://arxiv.org/abs/2503.20314" target="_blank"> Wan 2.1 VAE</a>,
+                        <a href="https://arxiv.org/abs/2106.13230" target="_blank">Video Swin</a>
+                    </div>
+                </div>
+                <div class="approach-card">
+                    <div class="approach-number">03</div>
+                    <h4>Factored attention</h4>
+                    <p>
+                        Alternate between spatial attention (within a frame) and temporal attention
+                        (across frames). Architecturally separates the two axes.
+                    </p>
+                    <div class="approach-models">
+                        <a href="https://arxiv.org/pdf/2102.05095" target="_blank">TimeSformer</a>,
+                        <a href="https://arxiv.org/abs/2402.15391v1" target="_blank">Genie ST-ViViT</a>,
+                        <a href="https://arxiv.org/pdf/2103.15691" target="_blank">ViViT</a>
+
+                    </div>
+                </div>
+                <div class="approach-card">
+                    <div class="approach-number">04</div>
+                    <h4>Unified spatiotemporal attention</h4>
+                    <p>
+                        All tokens from all frames attend to all other tokens. No architectural
+                        distinction between time and space. Positional encoding is the only signal.
+                    </p>
+                    <div class="approach-models">
+                        <a href="https://arxiv.org/abs/2506.09985" target="_blank"> VJEPA2</a>
+                    </div>
+                </div>
+            </div>
+
+            <p>
+                The natural assumption is that approach 3 (factored attention) should produce the cleanest
+                separation of temporal and spatial features, since it literally processes them in
+                separate attention layers. Approach 4 seems like it would mix everything together.
+                But is that actually what happens?
+            </p>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 4: The experiment ═══════════ -->
+
+            <h2>The experiment</h2>
+
+            <p>
+                I probed four pretrained video models from three different families, with different architectures
+                and training objectives, to answer this question: <strong>are temporal features
+                    disentangled from spatial features in these representations?</strong>
+            </p>
+
+            <table class="comparison-table reveal">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Architecture</th>
+                        <th>Position encoding</th>
+                        <th>Approach</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="dot-wan">&#9679;</span> Wan 2.1</td>
+                        <td>3D causal conv (VAE) + DiT</td>
+                        <td>3D RoPE</td>
+                        <td>02 + 04</td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot-vjepa2">&#9679;</span> VJEPA2</td>
+                        <td>ViT-Large, unified attention</td>
+                        <td>3D RoPE</td>
+                        <td>04</td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot-timesformer">&#9679;</span> TimeSformer</td>
+                        <td>Divided space-time attention</td>
+                        <td>Learned (separate)</td>
+                        <td>03</td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot-vivit">&#9679;</span> ViViT</td>
+                        <td>ViT-Base, unified attention</td>
+                        <td>Learned (unified)</td>
+                        <td>04</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>
+                Three probes, each testing a different aspect of temporal disentanglement:
+            </p>
+            <ol>
+                <li>
+                    <strong>Position encoding ablation.</strong> Zero out the temporal position encoding
+                    and measure how much the output changes. If temporal positions carry information,
+                    this should cause a large shift.
+                </li>
+                <li>
+                    <strong>Frame shuffle sensitivity.</strong> Randomly reorder the video frames and compare
+                    hidden states at each layer. If a model encodes temporal order, shuffling should
+                    destroy that signal&mdash;and we can track <em>where</em> in the network this matters most.
+                </li>
+                <li>
+                    <strong>Attention head specialization.</strong> For models with accessible attention weights,
+                    measure whether individual heads preferentially attend across time vs. across space.
+                </li>
+            </ol>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 5: Results ═══════════ -->
+
+            <h2>Results</h2>
+
+            <p>
+                I removed temporal position encodings from each model and measured the cosine similarity
+                between the original and ablated outputs. A value of 1.0 means the ablation had
+                no effect; lower values mean the model relied on that positional information.
+            </p>
+
+            <!-- Position ablation bar chart -->
+            <div class="chart-container reveal" id="chart-pos-ablation">
+                <div class="chart-title">Position encoding ablation &mdash; synthetic stimuli</div>
+                <div class="chart-subtitle">Cosine similarity with baseline after removing temporal or spatial
+                    positions.
+                    Averaged over 5 synthetic videos (moving bar, static texture, brightness ramp, moving dot,
+                    flickering).
+                </div>
+
+                <div class="bar-section-label">Remove temporal positions</div>
+                <div class="bar-group" id="bars-temporal"></div>
+
+                <div class="bar-section-label mt-1">Remove spatial positions</div>
+                <div class="bar-group" id="bars-spatial"></div>
+            </div>
+
+            <p>
+                Removing temporal position encodings from TimeSformer and ViViT
+                does <em>nothing</em>: cosine similarity stays at
+                <span class="metric-inline"><span class="metric-val dot-timesformer">0.999</span></span> and
+                <span class="metric-inline"><span class="metric-val dot-vivit">1.000</span></span>,
+                meaning these models no longer depend on their temporal positional signals at inference.
+                VJEPA2, by contrast, drops to
+                <span class="metric-inline"><span class="metric-val dot-vjepa2">0.630</span></span>. Its 3D RoPE
+                temporal dimensions carry substantial information that the model
+                actively uses. Wan 2.1's DiT shows a milder effect at
+                <span class="metric-inline"><span class="metric-val dot-wan21">0.928</span></span> on
+                synthetic patterns, where its RoPE matters less when temporal structure is minimal.
+            </p>
+
+            <div class="callout">
+                Perhaps what determines temporal feature persistence is not the attention architecture
+                (factored vs. unified) but the position encoding mechanism.
+                Additive learned embeddings are absorbed during training. The model learns to rely
+                on content instead, even though
+                <a href="https://arxiv.org/abs/2102.05095">they measurably improve training</a>.
+                Multiplicative RoPE is re-injected at every layer, making temporal position an
+                inextricable part of the attention computation.
+            </div>
+
+            <p>
+                Why the difference? Learned position embeddings are additive: summed into token representations at the input
+                and never re-injected. After dozens of layers of LayerNorm and residual connections,
+                the network can learn to compensate, and the positional signal fades into the content
+                representation.
+                RoPE works differently. It applies rotation matrices to the query and key vectors
+                <em>at every attention layer</em>, so the dot product \(q_i \cdot k_j\) is multiplicatively
+                modulated by the relative position \((i - j)\). Temporal position isn't just a hint added
+                to the input; it's structural infrastructure that shapes every attention score the
+                model computes. The network cannot learn around it because it's re-injected at every layer.
+            </p>
+
+            <p>
+                There is a deeper reason RoPE produces rich temporal features.
+                Each query-key dimension rotates at a different frequency, a direct consequence of
+                the sinusoidal basis. Lower dimensions rotate fast (high frequency, short period) and
+                complete full cycles within the sequence; upper dimensions rotate slowly (low frequency,
+                long period) and may only traverse a monotonic arc. This creates a natural
+                division of labor: high-frequency dimensions act like a fine-grained temporal hash,
+                distinguishing nearby frames but aliasing distant ones, while low-frequency
+                dimensions preserve monotonic ordering across the full clip, capturing long-range
+                temporal dependencies. Ablating the temporal RoPE axes therefore doesn't remove a
+                single signal&mdash;it simultaneously destroys both the local frame-to-frame
+                signatures and the global temporal ordering that the model has learned to rely on.
+            </p>
+
+            <p>
+                To see this concretely, consider VJEPA2's 3D RoPE. Each head's 64 dimensions are split into
+                three groups: 20 for temporal position, 20 for height, and 20 for width. Here is what those
+                position encodings look like across all 2,048 tokens (8 temporal &times; 16 &times; 16 spatial):
+            </p>
+
+            <figure class="blog-figure reveal">
+                <img src="/assets/blog/temporal-features/vjepa2-rope-patterns.jpg"
+                    alt="VJEPA2 3D RoPE position encoding patterns: temporal (top), height (middle), width (bottom)"
+                    class="wide">
+                <figcaption class="blog-figcaption">
+                    VJEPA2's 3D RoPE position IDs. Each panel is one timestep's 16&times;16 spatial grid.
+                    <strong>Top row</strong> (temporal): uniform within each frame, steps across frames.
+                    <strong>Middle</strong> (height): horizontal bands, identical across all frames.
+                    <strong>Bottom</strong> (width): vertical bands, identical across all frames.
+                </figcaption>
+            </figure>
+
+            <p>
+                Zeroing out the temporal RoPE dimensions not only removes a signal but also corrupts
+                the rotation matrices, scrambling the attention scores between tokens at different
+                timesteps.
+                This is why the effect is so large (cosine similarity drops to 0.630): the model's learned
+                attention patterns are <em>predicated</em> on those rotations being present.
+                Spatial ablation, by contrast, causes significant disruption in <em>all</em> models,
+                regardless of encoding type. Spatial layout carries non-redundant structural
+                information (edges, objects, part relationships) that content features alone
+                cannot reconstruct, so even additive spatial embeddings resist absorption.
+                Spatial positions, then, are universally important, but can we say the same for temporal
+                positions?
+            </p>
+
+            <h3>Validation on real robot videos</h3>
+            <p>
+                Synthetic stimuli (moving bars, brightness ramps) are useful for controlled experiments,
+                but real videos could behave differently. I reran the same probes on real robot manipulation
+                videos.
+            </p>
+
+            <figure class="blog-figure blog-figure--small reveal">
+                <video autoplay loop muted playsinline src="/assets/blog/temporal-features/sample-robot.mp4"></video>
+                <figcaption class="blog-figcaption">
+                    A sample clip from the genrobot bimanual manipulation dataset used for validation.
+                </figcaption>
+            </figure>
+
+            <!-- Real video bar chart -->
+            <div class="chart-container reveal" id="chart-pos-ablation-real">
+                <div class="chart-title">Position ablation &mdash; real robot videos</div>
+                <div class="chart-subtitle">Cosine similarity with baseline (10 episodes from a bimanual manipulation
+                    dataset)</div>
+
+                <div class="bar-section-label">Remove temporal positions</div>
+                <div class="bar-group" id="bars-temporal-real"></div>
+
+                <div class="bar-section-label mt-1">Remove spatial positions</div>
+                <div class="bar-group" id="bars-spatial-real"></div>
+            </div>
+
+            <p>
+                The pattern holds on real videos. In some cases it's even more extreme. VJEPA2's temporal RoPE
+                ablation drops to
+                <span class="metric-inline"><span class="metric-val dot-vjepa2">0.558</span></span>
+                (vs. 0.630 on synthetic), while TimeSformer and ViViT remain unmoved.
+                Wan 2.1's DiT sits in between at
+                <span class="metric-inline"><span class="metric-val dot-wan21">0.838</span></span>. Its
+                temporal RoPE matters, but less than VJEPA2's, likely because the DiT also receives
+                strong content signal from the noisy latents and prompt conditioning.
+                Those latents already carry temporal structure: the upstream 3D causal-conv VAE is
+                order-sensitive, with cosine distance ~0.34 between original and shuffled reconstructions,
+                so the DiT builds on a temporally-aware foundation.
+                The conclusion still holds: <strong>this is not an artifact of synthetic stimuli.</strong>
+            </p>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 6: Where in the network? ═══════════ -->
+
+            <h2>Where in the network does temporal order matter?</h2>
+
+            <p>
+                The second probe shuffled video frames and tracked how each layer's representations changed.
+                If temporal order is encoded progressively through the network, we should see a characteristic
+                pattern in how sensitive each layer is to the shuffle.
+            </p>
+
+            <!-- Line chart: frame shuffle per layer (synthetic) -->
+            <div class="chart-container reveal" id="chart-frame-shuffle">
+                <div class="chart-title">Frame shuffle sensitivity by layer &mdash; synthetic stimuli</div>
+                <div class="chart-subtitle">Per-token cosine similarity between original and shuffled videos (5
+                    synthetic stimuli)</div>
+                <svg id="svg-frame-shuffle" class="line-chart-svg" viewBox="0 0 600 300"></svg>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ef4444"></div>Wan 2.1 (VAE)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--vjepa2"></div>VJEPA2
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--timesformer"></div>TimeSformer
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--vivit"></div>ViViT
+                    </div>
+                </div>
+            </div>
+
+            <p>
+                VJEPA2 shows an interesting pattern: similarity starts high in early layers (the model hasn't
+                yet built temporal-order-dependent features) and then <em>steadily drops</em> through deeper layers,
+                falling to
+                <span class="metric-inline"><span class="metric-val dot-vjepa2">0.63</span></span>
+                at the final layer. The network progressively builds representations that depend on frame order.
+                TimeSformer and ViViT show the opposite trend: similarity is lower in early layers and
+                <em>increases</em> toward the output, meaning these models are gradually <em>removing</em> temporal order
+                information through depth, not accumulating it. Their final representations are
+                largely order-invariant. Wan 2.1 VAE shows flat sensitivity around 0.65-0.76, dipping to 0.63 at the
+                output, indicating mild sensitivity to frame order on simple stimuli.
+            </p>
+
+            <h3>Frame shuffle on real videos</h3>
+            <p>
+                The same probe on 10 real robot manipulation episodes tells a more dramatic story,
+                with the curves separating much further.
+            </p>
+
+            <!-- Line chart: frame shuffle per layer (real videos) -->
+            <div class="chart-container reveal" id="chart-frame-shuffle-real">
+                <div class="chart-title">Frame shuffle sensitivity by layer &mdash; real robot videos</div>
+                <div class="chart-subtitle">Per-token cosine similarity between original and shuffled videos (10
+                    genrobot episodes)</div>
+                <svg id="svg-frame-shuffle-real" class="line-chart-svg" viewBox="0 0 600 300"></svg>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#ef4444"></div>Wan 2.1 (VAE)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--vjepa2"></div>VJEPA2
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--timesformer"></div>TimeSformer
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot legend-dot--vivit"></div>ViViT
+                    </div>
+                </div>
+            </div>
+
+            <p>
+                VJEPA2's final-layer similarity drops to
+                <span class="metric-inline"><span class="metric-val dot-vjepa2">0.44</span></span>&mdash;frame
+                order is deeply woven into its late representations. TimeSformer and ViViT land at
+                <span class="metric-inline"><span class="metric-val dot-timesformer">0.58</span></span> and
+                <span class="metric-inline"><span class="metric-val dot-vivit">0.74</span></span> respectively,
+                confirming they converge toward order-invariance even on complex, naturalistic video. Wan 2.1 dips to
+                0.41 in mid-layers (stages 1-2 where temporal receptive field
+                grows), partially recovers to 0.88 in late layers (stage 3 residual blocks), then drops again at
+                conv_out (0.61).
+            </p>
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 7: Attention heads ═══════════ -->
+
+            <h2>Specialized components, entangled outputs</h2>
+
+            <p>
+                The third probe looked inside VJEPA2's attention mechanism. For each of the 384 attention heads
+                (24 layers &times; 16 heads), we can measure whether the head preferentially attends across
+                time (temporal specialist) or across space (spatial specialist).
+            </p>
+
+            <!-- Heatmap -->
+            <div class="chart-container reveal" id="chart-heatmap">
+                <div class="chart-title">VJEPA2 attention head specialization</div>
+                <div class="chart-subtitle">
+                    Log<sub>10</sub> ratio of temporal vs. spatial attention weight per head.
+                    Blue = spatial specialist. Red = temporal specialist.
+                </div>
+                <div class="heatmap-wrapper">
+                    <div class="heatmap-y-axis">Layer (0&ndash;23)</div>
+                    <div>
+                        <div class="heatmap-grid heatmap-grid--24x16" id="heatmap-grid">
+                        </div>
+                        <div class="heatmap-x-axis">Head (0&ndash;15)</div>
+                    </div>
+                </div>
+                <div class="heatmap-scale">
+                    <span class="heatmap-scale-label">Spatial</span>
+                    <div class="heatmap-gradient"></div>
+                    <span class="heatmap-scale-label">Temporal</span>
+                </div>
+            </div>
+
+            <p>
+                The heatmap reveals extreme specialization. Some heads (bright red) attend almost exclusively
+                across frames (temporal specialists), while others (bright blue) attend only within
+                a single frame (spatial specialists). The coefficient of variation across all heads
+                is <span class="metric-inline"><span class="metric-val">5.38</span></span>, indicating
+                massive diversity. To see what this means in practice, we can pick a single query token
+                (center of frame 4) and visualize where two different attention heads direct their
+                attention across all 8 timesteps:
+            </p>
+
+            <figure class="blog-figure reveal">
+                <img src="/assets/blog/temporal-features/vjepa2-attention-heads.jpg"
+                    alt="Attention patterns: temporal specialist head attends across all frames at the same position; spatial specialist head attends within the query frame"
+                    class="wide">
+                <figcaption class="blog-figcaption">
+                    Attention from a center-of-frame query token across 8 timesteps.
+                    <strong>Top</strong>: temporal specialist (head 8, layer 4, ratio 21.7&times;) &mdash;
+                    attends to the same spatial position across all frames, tracking motion through time.
+                    <strong>Bottom</strong>: spatial specialist (head 0, layer 4, ratio 0.003&times;) &mdash;
+                    attention is confined to the query's own frame, reading spatial context.
+                </figcaption>
+            </figure>
+
+            <p>
+                And yet, despite this head-level specialization, the <em>representation as a whole</em>
+                is entangled. Ablating temporal RoPE disrupts spatial processing, and vice versa.
+                The specialized heads feed into shared residual streams and MLP layers, mixing everything
+                back together. The pattern is: <strong>specialized components, entangled outputs.</strong>
+            </p>
+
+            <div class="section-divider"></div>
+
+
+            <!-- ═══════════ Section 8: Full comparison ═══════════ -->
+
+            <h2>Full comparison</h2>
+
+            <table class="comparison-table reveal">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th><span class="dot-wan">&#9679;</span> Wan 2.1</th>
+                        <th><span class="dot-vjepa2">&#9679;</span> VJEPA2</th>
+                        <th><span class="dot-timesformer">&#9679;</span> TimeSformer</th>
+                        <th><span class="dot-vivit">&#9679;</span> ViViT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Approach</td>
+                        <td>02 + 04</td>
+                        <td>04</td>
+                        <td>03</td>
+                        <td>04</td>
+                    </tr>
+                    <tr>
+                        <td>Position encoding</td>
+                        <td>3D RoPE</td>
+                        <td>3D RoPE</td>
+                        <td>Learned (separate)</td>
+                        <td>Learned (unified)</td>
+                    </tr>
+                    <tr>
+                        <td>Temporal pos. ablation</td>
+                        <td>cos = 0.84</td>
+                        <td>cos = 0.56</td>
+                        <td>cos = 0.999</td>
+                        <td>cos = 1.000</td>
+                    </tr>
+                    <tr>
+                        <td>Spatial pos. ablation</td>
+                        <td>cos = 0.73</td>
+                        <td>cos = 0.27</td>
+                        <td>cos = 0.37</td>
+                        <td>cos = 0.61</td>
+                    </tr>
+                    <tr>
+                        <td>Temporal encoding at inference</td>
+                        <td>Content + some RoPE</td>
+                        <td>RoPE-dependent</td>
+                        <td>Content-based (absorbed)</td>
+                        <td>Content-based (absorbed)</td>
+                    </tr>
+                    <tr>
+                        <td>Head specialization</td>
+                        <td>Moderate</td>
+                        <td>Extreme (CV=5.38)</td>
+                        <td>N/A (factored)</td>
+                        <td>N/A</td>
+                    </tr>
+                    <tr>
+                        <td>Frame shuffle sensitivity</td>
+                        <td>U-shaped (VAE)</td>
+                        <td>Progressive drop</td>
+                        <td>Progressive rise</td>
+                        <td>Progressive rise</td>
+                    </tr>
+                    <tr>
+                        <td>Functional disentanglement</td>
+                        <td>No</td>
+                        <td>No</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>
+                The bottom row is the punchline. Despite different architectures&mdash;factored
+                attention, unified attention, 3D convolutions, RoPE, learned embeddings&mdash;none of these
+                models achieves functional temporal disentanglement. In every case, temporal and spatial
+                information are entangled in the final representation.
+            </p>
+
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 10: What this means ═══════════ -->
+
+            <h2>What this means</h2>
+
+            <p>
+                <strong>1. Factored attention helps accuracy, not disentanglement.</strong>
+                TimeSformer's divided attention <a href="https://arxiv.org/abs/2102.05095">achieves better
+                    classification accuracy</a> than joint attention, especially on temporal-heavy benchmarks
+                like SSv2. But this does not mean its temporal and spatial features are <em>separable</em>
+                in the representation. Factored processing produces better features, not disentangled ones.
+            </p>
+
+            <p>
+                <strong>2. The position encoding mechanism determines inference-time dependence.</strong>
+                RoPE injects positional information multiplicatively into
+                attention scores, making it structurally impossible for the model to absorb away.
+                Learned additive position embeddings shape training (they improve accuracy),
+                but their signal gets internalized into content features, leaving no inference-time
+                dependence. If you need a model to <em>explicitly and persistently</em> represent
+                temporal position, RoPE seems to be the way to go.
+            </p>
+
+            <p>
+                <strong>3. Content-based temporal understanding may be sufficient at inference.</strong>
+                TimeSformer and ViViT achieve competitive performance on action recognition benchmarks
+                while showing zero inference-time dependence on temporal position encodings. Temporal
+                position embeddings helped them <em>learn</em> content-based temporal reasoning during
+                training, but at inference the model reads temporal order purely from
+                <em>what things look like across frames</em>. This is arguably more robust: the temporal
+                understanding has been baked into the weights rather than relying on a positional signal
+                that could be corrupted. Another explanation for this is what we see in <a
+                    href="https://arxiv.org/abs/2309.16588" target="_blank">registers for vision transformers</a>.
+                Maybe these embeddings are just a garbage collector that you can throw away at inference!
+            </p>
+
+
+            <div class="section-divider"></div>
+
+            <!-- ═══════════ Section 11: Final thoughts ═══════════ -->
+
+            <h2>What's next?</h2>
+
+            <p>
+                There is still an open question in my mind that I didn't investigate in my experiments. We know that the
+                training objective is critical in representation learning. Tasks such as classification and segmentation
+                are all supervised, yet JEPA, the model with the best feature specialization, was trained in a
+                self-supervised way. Maybe the self-supervised training objective is more important for temporal feature
+                representation than the supervised one. Looking into how training objectives shape temporal
+                features is great future work.
+            </p>
+            <p>
+                And although in our experiments RoPE helped feature specialization, it's not clear that the
+                spatial-temporal decomposition is the right one. Maybe there is a more abstract way to think
+                about features themselves!
+            </p>
+
+            <!-- ═══════════ Citation ═══════════ -->
+
+            <h2>Citation</h2>
+            <p>If you found this post useful, you can cite it as:</p>
+            <div class="citation-block">
+                <pre><code id="bibtex">@article{gard2026temporal,
+  title   = {In the Pursuit of Temporal Features},
+  author  = {Gard, Nima},
+  year    = {2026},
+  month   = {Mar},
+  url     = {https://nimagard.github.io/blog/temporal-features.html}
+}</code></pre>
+                <button class="copy-btn" onclick="copyBibtex()" aria-label="Copy citation">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span id="copy-label">Copy</span>
+                </button>
+            </div>
+
+        </div>
+    </article>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>&copy; 2026 Nima Gard</p>
+            <div class="footer-links">
+                <a href="https://twitter.com/NimaGard" target="_blank">X/Twitter</a>
+                <a href="https://linkedin.com/in/nimagard" target="_blank">LinkedIn</a>
+                <a href="https://github.com/nimagard" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tooltip element -->
+    <div class="chart-tooltip" id="tooltip"></div>
+
+    <script src="../js/main.js" onerror="console.log('main.js not found, skipping')"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        // ═══════════ Experiment data (embedded) ═══════════
+        // Synthetic stimuli: moving bar, static texture, brightness ramp, moving dot, flickering
+        const DATA = {
+            pos_ablation: {
+                wan21: { no_temporal: 0.9275, no_spatial: 0.9808 },
+                vjepa2: { no_temporal: 0.6295, no_spatial: 0.5052 },
+                timesformer: { no_temporal: 0.9988, no_spatial: 0.6444 },
+                vivit: { no_temporal: 0.9999, no_spatial: 0.7594 },
+            },
+            layer_curves: {
+                wan21: {
+                    depth: [0.0, 0.0769, 0.1538, 0.2308, 0.3077, 0.3846, 0.4615, 0.5385, 0.6154, 0.6923, 0.7692, 0.8462, 0.9231, 1.0],
+                    cos_sim: [0.6913, 0.7581, 0.7621, 0.7111, 0.6854, 0.722, 0.6545, 0.6904, 0.6749, 0.6418, 0.714, 0.7373, 0.8212, 0.6319],
+                },
+                vjepa2: {
+                    depth: [0.0, 0.0417, 0.0833, 0.125, 0.1667, 0.2083, 0.25, 0.2917, 0.3333, 0.375, 0.4167, 0.4583, 0.5, 0.5417, 0.5833, 0.625, 0.6667, 0.7083, 0.75, 0.7917, 0.8333, 0.875, 0.9167, 0.9583, 1.0],
+                    cos_sim: [0.7334, 0.8934, 0.9326, 0.9495, 0.9544, 0.9648, 0.9709, 0.9756, 0.9778, 0.9783, 0.9787, 0.9767, 0.973, 0.9659, 0.9584, 0.9458, 0.9358, 0.9262, 0.9067, 0.8875, 0.8641, 0.8358, 0.8284, 0.812, 0.629],
+                },
+                timesformer: {
+                    depth: [0.0, 0.0833, 0.1667, 0.25, 0.3333, 0.4167, 0.5, 0.5833, 0.6667, 0.75, 0.8333, 0.9167, 1.0],
+                    cos_sim: [0.8143, 0.8845, 0.907, 0.9055, 0.9078, 0.8834, 0.8681, 0.8631, 0.8666, 0.8732, 0.8856, 0.8949, 0.9113],
+                },
+                vivit: {
+                    depth: [0.0, 0.0833, 0.1667, 0.25, 0.3333, 0.4167, 0.5, 0.5833, 0.6667, 0.75, 0.8333, 0.9167, 1.0],
+                    cos_sim: [0.61, 0.6864, 0.7027, 0.7272, 0.7295, 0.7353, 0.7327, 0.6702, 0.6802, 0.6993, 0.7188, 0.7588, 0.7691],
+                },
+            },
+            heatmap: [[0.1307, 0.1055, 0.061, 0.0896, 0.2855, 1.3772, 0.1277, 0.1156, 0.1109, 0.0644, 0.3575, 0.0748, 0.324, 0.1153, 0.0102, 0.1051], [0.2258, 0.164, 0.0057, 0.5244, 0.732, 0.1623, 0.6814, 0.2936, 0.1264, 0.2344, 0.1647, 0.1943, 0.1705, 0.1961, 0.1487, 0.1757], [0.4038, 0.3821, 0.0945, 0.1383, -0.1784, 1.1223, 0.1566, 0.5353, 0.5163, 0.4064, 0.2777, 0.6381, 1.661, 0.3286, 0.5119, 0.1735], [0.9213, 1.1219, 0.1773, 0.206, 0.5499, 0.1833, 1.1033, 0.5004, 0.3017, 0.7973, 0.697, 0.8024, 0.5625, 1.2258, 0.1614, 1.2311], [-1.0055, 0.6957, 0.01, -0.0163, -0.0614, 0.2092, 1.0593, 0.567, 2.3188, 0.1326, 0.4611, 0.2031, 0.2058, 0.3698, 1.0084, 0.7612], [0.2268, 0.7614, -1.6744, 1.2719, 1.7771, 0.9554, 0.7839, 0.0612, 0.4599, 1.4498, 0.1649, 0.0862, 0.9393, -0.0559, 1.4476, 1.1378], [0.2305, 0.8195, 0.5833, -0.7572, 0.9191, -0.2239, 0.2767, 1.179, -0.0859, 1.7456, 1.1673, 0.4207, 0.2775, 1.9796, 1.6751, 2.2398], [0.8964, -0.1862, -1.0446, 0.1502, 0.1988, -1.4137, 1.399, 0.5885, -0.4416, 0.2701, 0.4365, -0.165, -0.135, 0.4448, 1.1468, -0.0252], [-0.2276, 1.3861, 1.88, -1.215, -0.4665, 1.1385, 0.439, 0.7148, 0.1341, 0.0388, 0.7189, 0.7517, 0.2149, 0.6145, -0.2649, -0.0979], [1.2413, 0.7594, 0.8974, -0.0584, 1.3684, -0.2278, 0.7349, 0.2462, 0.5898, 1.4201, -1.0646, 0.7054, 2.1469, -0.1188, 0.3646, 1.368], [0.6988, -1.012, 1.5814, 0.8972, -0.0689, 0.3041, 2.0732, -0.1238, 1.0052, 1.8226, 1.1902, -0.329, 0.3986, -0.6001, -1.1212, 0.5769], [-1.5559, 0.4721, 0.1332, 0.9718, 0.0234, -1.6846, -0.0984, -0.2156, -0.109, 0.6211, 1.4417, 0.2135, 1.0899, 1.208, 0.4643, 0.2222], [1.108, 0.4493, 1.446, 0.0849, -0.2024, 0.1696, 1.0515, -0.929, 0.5074, 0.4524, 0.9285, -0.086, 1.1283, 0.2932, -0.8632, 0.2422], [-0.3731, 0.2551, 0.0902, 0.0979, -0.0204, 0.3223, 1.0435, 0.405, 1.4022, 0.5086, -0.0763, 0.7144, 0.8554, 0.1176, 0.6054, -1.0628], [0.1305, 1.0629, 1.0173, 1.407, 1.0967, -0.0774, 0.0493, 0.4525, 0.4253, -0.2193, 0.2209, 0.8272, 0.1852, -0.8344, 0.2391, 0.7949], [0.0886, 0.7786, 0.1194, -0.6229, 0.8681, 0.1346, 0.0914, 0.2165, 0.4736, 0.4487, 0.5857, 0.1258, 0.2278, -0.6315, 0.6979, 0.3973], [0.2847, 0.1604, 0.3326, 0.0899, 0.3597, 0.2361, -0.55, 0.5134, 0.6459, -0.1459, 0.5492, -0.0017, -0.0818, 0.5344, 0.0114, 0.6289], [-0.0873, 0.5089, 0.7454, 0.3034, 0.3885, 0.5616, 0.051, 0.596, -0.7957, 0.6116, 0.2163, 0.5859, 0.1916, 0.4577, 0.9491, -0.0355], [-0.319, 0.9156, 0.212, 0.4742, 0.0886, -0.0705, 0.1538, 0.4714, -0.4348, 0.3048, 0.4253, 0.365, -0.1017, 0.4902, -0.0319, 0.1251], [-0.0692, 0.2846, 0.1924, -0.4247, 0.0221, -0.0369, 0.5617, 0.5226, 0.0807, 0.1621, -0.488, 0.6043, 0.2686, 0.6735, 0.2125, -0.1177], [0.6072, 0.0956, 0.7126, 0.4621, 0.1487, -0.054, 0.4187, -0.1211, 0.1655, 0.0879, -0.0106, 0.135, 0.5439, -0.2523, 0.2626, 0.2469], [0.0605, 0.0744, 0.3567, 0.3837, 0.4133, -0.0063, 0.4716, 0.0146, 0.3983, -0.3499, 0.0087, 0.3537, 0.3144, 0.0219, 0.4915, 0.0322], [-0.0165, 0.0274, 0.0293, 0.0635, 0.361, 0.5632, -0.0097, 0.0588, 0.4303, 0.0327, 0.083, 0.0254, 0.0233, 0.1026, 0.0387, 0.0144], [0.4137, 0.111, 0.5044, -0.0122, -0.0018, 0.0495, 0.0278, 0.5126, 0.2402, 0.0307, 0.3711, 0.1112, 0.0078, 0.597, 0.407, 0.7837]],
+        };
+
+        // Real robot video data (10 episodes from genrobot dataset)
+        const DATA_REAL = {
+            pos_ablation: {
+                wan21: { no_temporal: 0.8387, no_spatial: 0.7291 },
+                vjepa2: { no_temporal: 0.5577, no_spatial: 0.2681 },
+                timesformer: { no_temporal: 0.9990, no_spatial: 0.3730 },
+                vivit: { no_temporal: 0.9998, no_spatial: 0.6124 },
+            },
+            layer_curves: {
+                wan21: {
+                    depth: [0.0, 0.0769, 0.1538, 0.2308, 0.3077, 0.3846, 0.4615, 0.5385, 0.6154, 0.6923, 0.7692, 0.8462, 0.9231, 1.0],
+                    cos_sim: [0.6629, 0.6509, 0.4814, 0.4597, 0.4987, 0.4112, 0.4369, 0.5513, 0.4577, 0.5196, 0.7664, 0.7961, 0.8768, 0.6069],
+                },
+                vjepa2: {
+                    depth: [0.0, 0.0417, 0.0833, 0.125, 0.1667, 0.2083, 0.25, 0.2917, 0.3333, 0.375, 0.4167, 0.4583, 0.5, 0.5417, 0.5833, 0.625, 0.6667, 0.7083, 0.75, 0.7917, 0.8333, 0.875, 0.9167, 0.9583, 1.0],
+                    cos_sim: [0.3367, 0.7714, 0.8826, 0.9214, 0.9316, 0.941, 0.9462, 0.9479, 0.9412, 0.9343, 0.9345, 0.9279, 0.921, 0.9198, 0.9126, 0.9042, 0.8995, 0.8718, 0.8583, 0.8268, 0.7862, 0.7422, 0.6907, 0.6608, 0.4361],
+                },
+                timesformer: {
+                    depth: [0.0, 0.0833, 0.1667, 0.25, 0.3333, 0.4167, 0.5, 0.5833, 0.6667, 0.75, 0.8333, 0.9167, 1.0],
+                    cos_sim: [0.2929, 0.3863, 0.3756, 0.3421, 0.3244, 0.3078, 0.3006, 0.3122, 0.3391, 0.3659, 0.3863, 0.4253, 0.5791],
+                },
+                vivit: {
+                    depth: [0.0, 0.0833, 0.1667, 0.25, 0.3333, 0.4167, 0.5, 0.5833, 0.6667, 0.75, 0.8333, 0.9167, 1.0],
+                    cos_sim: [0.2498, 0.3464, 0.3637, 0.3783, 0.3764, 0.3865, 0.391, 0.4114, 0.435, 0.4542, 0.4932, 0.5614, 0.7368],
+                },
+            },
+        };
+
+        const COLORS = {
+            wan21: '#ef4444',
+            vjepa2: '#6366f1',
+            timesformer: '#22c55e',
+            vivit: '#f59e0b',
+        };
+
+        // ═══════════ Bar chart renderer ═══════════
+        function renderBars(containerId, condition, dataSource) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const models = [
+                { key: 'wan21', label: 'Wan 2.1' },
+                { key: 'vjepa2', label: 'VJEPA2' },
+                { key: 'timesformer', label: 'TimeSformer' },
+                { key: 'vivit', label: 'ViViT' },
+            ];
+
+            const src = dataSource || DATA.pos_ablation;
+            models.forEach(m => {
+                if (!src[m.key]) return;
+                const val = src[m.key][condition];
+                const row = document.createElement('div');
+                row.className = 'bar-row';
+                row.innerHTML = `
+                <div class="bar-label">${m.label}</div>
+                <div class="bar-track">
+                    <div class="bar-fill color-${m.key}" data-width="${val * 100}" style="width: 0%"></div>
+                </div>
+                <div class="bar-value">${val.toFixed(3)}</div>
+            `;
+                container.appendChild(row);
+            });
+        }
+
+        // Synthetic video bars
+        renderBars('bars-temporal', 'no_temporal');
+        renderBars('bars-spatial', 'no_spatial');
+
+        // Real robot video bars
+        renderBars('bars-temporal-real', 'no_temporal', DATA_REAL.pos_ablation);
+        renderBars('bars-spatial-real', 'no_spatial', DATA_REAL.pos_ablation);
+
+        // ═══════════ SVG line chart renderer ═══════════
+        function renderLineChart(svgId, layerCurves, yMinOverride) {
+            const svg = document.getElementById(svgId);
+            if (!svg) return;
+            const curves = layerCurves || DATA.layer_curves;
+            const W = 600, H = 300;
+            const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+            const plotW = W - pad.left - pad.right;
+            const plotH = H - pad.top - pad.bottom;
+
+            const yMin = yMinOverride !== undefined ? yMinOverride : 0.55;
+            const yMax = 1.0;
+            const toX = d => pad.left + d * plotW;
+            const toY = v => pad.top + (1 - (v - yMin) / (yMax - yMin)) * plotH;
+
+            let html = '';
+
+            // Grid lines
+            const gridStep = yMin < 0.3 ? 0.2 : 0.1;
+            for (let v = Math.ceil(yMin / gridStep) * gridStep; v <= yMax; v += gridStep) {
+                const y = toY(v);
+                html += `<line class="grid-line" x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}"/>`;
+                html += `<text class="axis-label" x="${pad.left - 8}" y="${y + 3}" text-anchor="end">${v.toFixed(1)}</text>`;
+            }
+
+            // X axis labels
+            [0, 0.25, 0.5, 0.75, 1.0].forEach(d => {
+                const x = toX(d);
+                html += `<text class="axis-label" x="${x}" y="${H - 8}" text-anchor="middle">${d.toFixed(2)}</text>`;
+            });
+            html += `<text class="axis-label" x="${W / 2}" y="${H}" text-anchor="middle">Normalized layer depth</text>`;
+
+            // Draw lines and dots
+            Object.keys(curves).forEach(model => {
+                const curve = curves[model];
+                const color = COLORS[model];
+                let pathD = '';
+                curve.depth.forEach((d, i) => {
+                    const x = toX(d);
+                    const y = toY(Math.max(yMin, Math.min(yMax, curve.cos_sim[i])));
+                    pathD += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
+                });
+                html += `<path class="data-line" d="${pathD}" stroke="${color}" data-model="${model}"/>`;
+
+                curve.depth.forEach((d, i) => {
+                    const x = toX(d);
+                    const y = toY(Math.max(yMin, Math.min(yMax, curve.cos_sim[i])));
+                    html += `<circle class="data-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" fill="${color}" r="3" data-val="${curve.cos_sim[i].toFixed(4)}" data-model="${model}"/>`;
+                });
+            });
+
+            svg.innerHTML = html;
+        }
+
+        renderLineChart('svg-frame-shuffle');
+        renderLineChart('svg-frame-shuffle-real', DATA_REAL.layer_curves, 0.2);
+
+        // ═══════════ Heatmap renderer ═══════════
+        function renderHeatmap() {
+            const grid = document.getElementById('heatmap-grid');
+            const data = DATA.heatmap;
+            const minVal = -2, maxVal = 3;
+
+            function valToColor(v) {
+                const t = Math.max(0, Math.min(1, (v - minVal) / (maxVal - minVal)));
+                // Blue (spatial) → dark → red (temporal)
+                if (t < 0.4) {
+                    const s = t / 0.4;
+                    const r = Math.round(59 * s);
+                    const g = Math.round(130 * (1 - s) + 27 * s);
+                    const b = Math.round(246 * (1 - s) + 75 * s);
+                    return `rgb(${r},${g},${b})`;
+                } else if (t < 0.5) {
+                    const s = (t - 0.4) / 0.1;
+                    return `rgb(${Math.round(59 * (1 - s))},${Math.round(27 * (1 - s))},${Math.round(75 * (1 - s))})`;
+                } else if (t < 0.6) {
+                    const s = (t - 0.5) / 0.1;
+                    return `rgb(${Math.round(74 * s)},${Math.round(26 * s)},${Math.round(10 * s)})`;
+                } else {
+                    const s = (t - 0.6) / 0.4;
+                    const r = Math.round(74 + (239 - 74) * s);
+                    const g = Math.round(26 + (68 - 26) * (1 - s));
+                    const b = Math.round(10 + (68 - 10) * (1 - s));
+                    return `rgb(${r},${g},${b})`;
+                }
+            }
+
+            data.forEach((row, layerIdx) => {
+                row.forEach((val, headIdx) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    cell.style.backgroundColor = valToColor(val);
+                    cell.title = `Layer ${layerIdx}, Head ${headIdx}: ${Math.pow(10, val).toFixed(2)}x`;
+                    grid.appendChild(cell);
+                });
+            });
+        }
+
+        renderHeatmap();
+
+        // ═══════════ Scroll reveal & bar animation ═══════════
+        function activateElement(el) {
+            el.classList.add('visible');
+            el.querySelectorAll('.bar-fill').forEach(bar => {
+                setTimeout(() => {
+                    bar.style.width = bar.dataset.width + '%';
+                }, 100);
+            });
+        }
+
+        // Try IntersectionObserver for scroll-triggered animation
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        activateElement(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+            ['chart-pos-ablation', 'chart-pos-ablation-real'].forEach(id => {
+                const chart = document.getElementById(id);
+                if (chart) observer.observe(chart);
+            });
+        }
+
+        // Fallback: activate everything after 500ms regardless
+        setTimeout(() => {
+            document.querySelectorAll('.reveal').forEach(el => activateElement(el));
+            document.querySelectorAll('.bar-fill').forEach(bar => {
+                if (bar.style.width === '0%' || bar.style.width === '') {
+                    bar.style.width = bar.dataset.width + '%';
+                }
+            });
+        }, 500);
+
+        // ═══════════ Tooltip for SVG dots ═══════════
+        const tooltip = document.getElementById('tooltip');
+        document.querySelectorAll('.data-dot').forEach(dot => {
+            dot.addEventListener('mouseenter', e => {
+                const model = e.target.dataset.model;
+                const val = e.target.dataset.val;
+                tooltip.textContent = `${model}: ${val}`;
+                tooltip.style.display = 'block';
+            });
+            dot.addEventListener('mousemove', e => {
+                tooltip.style.left = (e.clientX + 12) + 'px';
+                tooltip.style.top = (e.clientY - 8) + 'px';
+            });
+            dot.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+
+        // ═══════════ Copy BibTeX ═══════════
+        function copyBibtex() {
+            const text = document.getElementById('bibtex').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const label = document.getElementById('copy-label');
+                label.textContent = 'Copied!';
+                setTimeout(() => { label.textContent = 'Copy'; }, 2000);
+            });
+        }
+        window.copyBibtex = copyBibtex;
+    </script>
+</body>
+
+</html>
